@@ -91,8 +91,8 @@ def main():
     actionDistribution = randomPolicy()
     #numSimulation, selectAction, selectNextState, expand, estimateValue, backup, outputDistribution
     numSimulation = 50
-    cInit = 100
-    cBase =1
+    cInit = 1
+    cBase =100
     scoreChild = ScoreChild(cInit,cBase)
     selectAction = SelectAction(scoreChild)
     selectNextState = SelectNextState(selectAction)
