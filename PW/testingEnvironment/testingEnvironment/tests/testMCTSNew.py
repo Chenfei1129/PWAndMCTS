@@ -5,8 +5,8 @@ import numpy as np
 from ddt import ddt, data, unpack
 from anytree import AnyNode as Node
 
-from src.algorithms.mcts2 import ScoreChild, SelectAction, SelectNextState, Expand, RollOut, backup, InitializeChildren  
-from src.algorithms.mcts2 import establishPlainActionDist, establishSoftmaxActionDist
+from src.algorithms.mctsStochasticNew import ScoreChild, SelectAction, SelectNextState, Expand, RollOut, backup, InitializeChildren  
+from src.algorithms.mctsStochasticNew import establishPlainActionDist, establishSoftmaxActionDist
 from src.simple1DEnv import TransitionFunction, RewardFunction, Terminal
 
 
