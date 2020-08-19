@@ -63,7 +63,7 @@ class TestMCTS(unittest.TestCase):
         pw = PWidening(alpha, C)
         self.assertEqual(pw(stateNode, child1), groundTruth)
 
-    @data((0,1,1, False), (1,1,2, False), (1,2,0,True))
+    @data((0,1,1, False), (1,1,2, False), (1,2,0,True), (0,3,2,True))
     @unpack
     def testPw(self, alpha, C, numVisit, groundTruth):
         stateNode = Node(id = {None:2})
@@ -151,11 +151,6 @@ class TestMCTS(unittest.TestCase):
             new_action_child.numVisited +=1
             old_child_id = new_child.id
 
-    @data((3, True, [2, 4]), (0, True, [0, 1]), (7, False, None))
-    @unpack
-    def testExpand(self, state, has_children, child_states):
-        leaf_node = Node(id={1: state}, numVisited=1,
-                         sumValue=1, actionPrior=0.5, isExpanded=False)
      
     @data((3, True, [-1, 1]), (0, True, [-1, 1]), (7, False, None))
     @unpack
