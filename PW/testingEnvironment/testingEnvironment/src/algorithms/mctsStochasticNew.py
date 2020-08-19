@@ -16,9 +16,6 @@ class InitializeChildren:
             nextState = self.transition(state, action)
             actionNode = Node(parent=node, id={action: action}, numVisited=0, sumValue=0,actionPrior=initActionPrior[action])
 
-           # Node(parent=actionNode, id={action: nextState}, numVisited=0, sumValue=0,
-                 #isExpanded=False)
-
         return node
 
 class Expand:
@@ -84,19 +81,12 @@ class SelectNextState:
         
     def __call__(self, stateNode, actionNode):
         nextPossibleState = actionNode.children
-        #print(nextPossibleState)
         if actionNode.numVisited == 0:
             probNextStateVisits = [1/len(nextPossibleState) for nextState in nextPossibleState]
-            #print(nextPossibleState)
-            #print(probNextStateVisits)
             nextState = np.random.choice(nextPossibleState, 1, p =probNextStateVisits)
         else:
             probNextStateVisits = [nextState.numVisited/actionNode.numVisited for nextState in actionNode.children]
-           # print("A")
-            #print(nextPossibleState)
             nextState = np.random.choice(nextPossibleState, 1, p =probNextStateVisits)
-            #print(nextState)
-            #print("B")
         return nextState[0]
 
 
@@ -118,7 +108,6 @@ class RollOut:
             nextState = self.transitionFunction(currentState, action)
             totalRewardForRollout += self.rewardFunction(currentState, action, nextState)
             if self.isTerminal(currentState):
-                #print("***")
                 break
 
             currentState = nextState
@@ -126,7 +115,6 @@ class RollOut:
         heuristicReward = 0
         if not self.isTerminal(currentState):
             heuristicReward = self.rolloutHeuristic(currentState)
-            #print(heuristicReward)
         totalRewardForRollout += heuristicReward
 
         return totalRewardForRollout
@@ -148,7 +136,6 @@ class MCTS:
         self.outputDistribution = outputDistribution
 
     def __call__(self, currentState):
-        #print(currentState)
         root = Node(id={None: currentState}, numVisited=0, sumValue=0, isExpanded=False)
         root = self.expand(root)
 
@@ -158,11 +145,8 @@ class MCTS:
 
             while currentNode.isExpanded:
                 actionNode = self.selectAction(currentNode)
-                #print(actionNode)
                 allNextStateNodes = self.expandNewState(currentNode, actionNode)
-                #print(allNextStateNodes)
                 nextStateNode = self.selectNextState(currentNode, actionNode)
-                #print(nextStateNode)
                 
                 nodePath.append(actionNode)
                 nodePath.append(nextStateNode)
@@ -173,21 +157,8 @@ class MCTS:
             self.backup(value, nodePath)
 
         actionDistribution = self.outputDistribution(root)
-        #print(actionDistribution)
-        #print(actionDistribution)
         return actionDistribution
 
-class RewardFunction:
-    def __init__(self, step_penalty, catch_reward, isTerminal):
-        self.step_penalty = step_penalty
-        self.catch_reward = catch_reward
-        self.isTerminal = isTerminal
-
-    def __call__(self, state, action):
-        if self.isTerminal(state):
-            return self.catch_reward
-        else:
-            return self.step_penalty
 
 def establishPlainActionDist(root):
     visits = np.array([child.numVisited for child in root.children])
@@ -204,14 +175,5 @@ def establishSoftmaxActionDist(root):
     actions = [list(child.id.keys())[0] for child in root.children]
     actionDist = dict(zip(actions, actionProbs))
     return actionDist
-'''
-currentState = [[0,1],[0,1]]
-root = Node(id={"state": currentState}, numVisited=0, sumValue=0, isExpanded=True)
 
-
-currentNode = root
-nodePath = [currentNode]
-if currentNode.isExpanded:
-    print("*")
-'''
 
