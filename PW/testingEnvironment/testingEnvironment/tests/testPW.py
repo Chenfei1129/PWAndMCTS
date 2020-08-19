@@ -5,8 +5,8 @@ import numpy as np
 from ddt import ddt, data, unpack
 from anytree import AnyNode as Node
 
-from src.algorithms.pw import ScoreChild, SelectAction, SelectNextState, Expand, RollOut, backup, InitializeChildren, PWidening
-from src.algorithms.pw import establishPlainActionDist, establishSoftmaxActionDist
+from src.algorithms.pwNew import ScoreChild, SelectAction, SelectNextState, Expand, RollOut, backup, InitializeChildren, PWidening
+from src.algorithms.pwNew import establishPlainActionDist, establishSoftmaxActionDist
 from src.simple1DEnv import TransitionFunction, RewardFunction, Terminal
 
 
@@ -18,7 +18,7 @@ class TestMCTS(unittest.TestCase):
         bound_high = 7
         self.transition = TransitionFunction(bound_low, bound_high)
 
-        self.C = 0
+        self.C = 1
         self.alpha = 0
         self.pw = PWidening(self.alpha, self.C)
 
@@ -52,7 +52,7 @@ class TestMCTS(unittest.TestCase):
        
         self.getActionPrior = lambda state : self.uniformActionPrior
         self.initializeChildren = InitializeChildren(
-            self.action_space, self.transition, self.getActionPrior, self.pw)
+            self.action_space, self.transition, self.getActionPrior)
         self.expand = Expand(self.isTerminal, self.initializeChildren)
 
     @data((0.5,2,1, True), (1,1,1, True))
@@ -63,15 +63,15 @@ class TestMCTS(unittest.TestCase):
         pw = PWidening(alpha, C)
         self.assertEqual(pw(stateNode, child1), groundTruth)
 
-    @data((0,1,0, False), (1,1,1, False))
+    @data((0,1,1, False), (1,1,2, False), (1,2,0,True))
     @unpack
     def testPw(self, alpha, C, numVisit, groundTruth):
         stateNode = Node(id = {None:2})
-        child2 = Node(id = {1:2}, parent = stateNode, numVisited = numVisit)
-        child3 = Node(id = {1:4}, parent = child2)
-        child4 = Node(parent = child2)
+        actionNode = Node(id = {1:2}, parent = stateNode, numVisited = numVisit)
+        child1 = Node(id = {1:4}, parent = actionNode)
+        child2 = Node(parent = actionNode)
         pw = PWidening(alpha, C)
-        self.assertEqual(pw(stateNode, child2), groundTruth)
+        self.assertEqual(pw(stateNode, actionNode), groundTruth)
 
     @data((0, 1, 0, 1, 0), (1, 1, 0, 1, np.log(3)/2), (1, 1, 1, 1, 1 + np.log(3)/2))
     @unpack
