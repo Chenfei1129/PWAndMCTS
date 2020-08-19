@@ -41,7 +41,7 @@ class SampleTrjactoriesForConditions:
     def __call__(self, parameters):
         print(parameters)
         numSimulation = parameters['numSimulation']
-        #rolloutHeuristic = parameters['rolloutHeuristic']
+        rolloutHeuristic = parameters['rolloutHeuristic']
         xBoundary = [0, 400]
         yBoundary = [0, 400]
         xSwamp = [300, 400]
@@ -50,7 +50,7 @@ class SampleTrjactoriesForConditions:
 
         noise = parameters['noise']
         cBase = parameters['cBase']
-       # maxRolloutStep = parameters['maxRolloutStep']
+        maxRolloutStep = parameters['maxRolloutStep']
         stayInBoundaryByReflectVelocity = StayInBoundaryByReflectVelocity(xBoundary, yBoundary)
         transitionWithNoise = TransitionWithNoise(noise)
 
@@ -76,8 +76,6 @@ class SampleTrjactoriesForConditions:
         resetState = Reset([0,400], [0,400], numOfAgent, target)
 
         actionSpace = [(50, 0), (-50, 0), (0, 50), (0, -50)]
-    #k = np.random.choice(actionSpace)
-    #print(k)
 
     
         actionCost = -0.02
@@ -91,8 +89,7 @@ class SampleTrjactoriesForConditions:
         sampleTrajecoty = SampleTrajectory(maxRunningSteps, isTerminal, resetState, oneStepSampleTrajectory)
         randomPolicy = RandomPolicy(actionSpace)
         actionDistribution = randomPolicy()
-    #numSimulation, selectAction, selectNextState, expand, estimateValue, backup, outputDistribution
-       # numSimulation = 50
+
         cInit = 1
         #cBase =100
         scoreChild = ScoreChild(cInit,cBase)
@@ -110,16 +107,13 @@ class SampleTrjactoriesForConditions:
             [state, terminalPosition] = allState
             distanceToTerminal = np.linalg.norm(np.array(target) - np.array(state), ord=2)     
             return (2*np.exp(-distanceToTerminal/100)-1)
-        '''
-        def rolloutHeuristic(allState):
-            return 0
-        '''
+
        # rolloutHeuristic = lambda state: 0#reward return sometimes grab nothing.  
 
         #maxRolloutStep = 15
         estimateValue = RollOut(rolloutPolicy, maxRolloutStep, twoAgentTransit, rewardFunction, isTerminal, rolloutHeuristic)
         mctsSelectAction = MCTS(numSimulation, selectAction, selectNextState, expand, expandNewState, estimateValue, backup, establishPlainActionDist)
-    #sampleAction = SampleFromDistribution(actionDictionary)
+
         def sampleAction(state):
             actionDist = mctsSelectAction(state)
             action = maxFromDistribution(actionDist)
@@ -138,7 +132,7 @@ def main():
     manipulatedVariables['numSimulation'] = [ 10, 50, 250]
     manipulatedVariables['noise'] = [ (0.1, 0.1) ]
     manipulatedVariables['cBase'] = [100]
- #   manipulatedVariables['maxRolloutStep'] = [15]
+    manipulatedVariables['maxRolloutStep'] = [15]
     manipulatedVariables['C'] = [1]
     manipulatedVariables['alpha'] = [0]
     manipulatedVariables['rolloutHeuristic'] = ['Heuristic']
