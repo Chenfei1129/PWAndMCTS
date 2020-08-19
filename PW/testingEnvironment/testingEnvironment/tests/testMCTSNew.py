@@ -138,12 +138,7 @@ class TestMCTS(unittest.TestCase):
             new_child.numVisited += 1
             new_action_child.numVisited +=1
             old_child_id = new_child.id
-
-    @data((3, True, [2, 4]), (0, True, [0, 1]), (7, False, None))
-    @unpack
-    def testExpand(self, state, has_children, child_states):
-        leaf_node = Node(id={1: state}, numVisited=1,
-                         sumValue=1, actionPrior=0.5, isExpanded=False)
+           
      
     @data((3, True, [-1, 1]), (0, True, [-1, 1]), (7, False, None))
     @unpack
