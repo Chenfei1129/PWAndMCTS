@@ -2,10 +2,10 @@ import sys
 sys.path.append('..')
 import unittest
 import numpy as np
-from ddt import ddt, data, unpack
+from ddt import ddt, data, unpack 
 from anytree import AnyNode as Node
 
-from src.algorithms.mctsStochasticNew import ScoreChild, SelectAction, SelectNextState, Expand, RollOut, backup, InitializeChildren  
+from src.algorithms.mctsStochasticNew import ScoreChild, SelectAction, SelectNextState, GrowNextState, Expand, RollOut, backup, InitializeChildren  
 from src.algorithms.mctsStochasticNew import establishPlainActionDist, establishSoftmaxActionDist
 from src.simple1DEnv import TransitionFunction, RewardFunction, Terminal
 
@@ -33,6 +33,7 @@ class TestMCTS(unittest.TestCase):
 
         self.selectAction = SelectAction(self.scoreChild)
         self.selectNextState = SelectNextState(self.selectAction)
+        self.growNextState = GrowNextState(self.transition)
 
         init_state = 3
         level1_0_state = self.transition(init_state, action=0)
@@ -71,6 +72,15 @@ class TestMCTS(unittest.TestCase):
         action = self.selectAction(curr_node)
         actionId = action.id
         self.assertEqual(actionId, groundtruth_actionid)
+
+    @data((1, 1, {1 : 2}),(2, 2, {2 : 4}))
+    @unpack
+    def testGrowNextState(self, state_id, action_id, groundTruth_nextState_id):
+        curr_node = Node(id = {0:state_id})
+        action_node = Node(id = {1:action_id})
+        nextState_node = self.growNextState(curr_node,action_node)[0]
+        nextState_node_id = nextState_node.id
+        self.assertEqual( nextState_node.id ,groundTruth_nextState_id )
 
     @data((1, 1, 2, 1, 0, 1, 0, 0, 1, 0.5, 0.5, 2), (2, 1, 2, 1, 1, 1, 1, 2, 1, 0.5, 0.5, 1))
     @unpack
