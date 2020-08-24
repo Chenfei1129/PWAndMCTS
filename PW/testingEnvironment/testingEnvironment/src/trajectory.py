@@ -33,7 +33,7 @@ class SampleTrajectory:
         trajectory = []
         for runningStep in range(self.maxRunningSteps):
             if self.isTerminal(state):
-                trajectory.append((state, None, None, 1000))
+                trajectory.append((state, None, None, 1))
                 break
             state, action, nextState, reward = self.forwardOneStep(state, sampleAction)
             trajectory.append((state, action, nextState, reward))
