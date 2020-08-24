@@ -153,8 +153,7 @@ def main():
     manipulatedVariables['rolloutHeuristic'] = ['noHeuristic']
    # manipulatedVariables['swamp'] = ['haveSwamp']
 
-     # temp just 2
- # 0 never detect compete, 1 only detect compete
+
     levelNames = list(manipulatedVariables.keys())
     levelValues = list(manipulatedVariables.values())
     modelIndex = pd.MultiIndex.from_product(levelValues, names=levelNames)
