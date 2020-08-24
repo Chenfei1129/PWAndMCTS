@@ -62,7 +62,7 @@ class SelectAction:
         selectedAction = stateNode.children[selectedChildIndex]
         return selectedAction
 
-class GrowNextState:
+class ExpandNextState:
     def __init__(self, transitionFunction):
         self.transitionFunction = transitionFunction
         
@@ -125,12 +125,12 @@ def backup(value, nodeList): #anytree lib
         node.numVisited += 1
 
 class MCTS:
-    def __init__(self, numSimulation, selectAction, selectNextState, expand, growNextState, estimateValue, backup, outputDistribution):
+    def __init__(self, numSimulation, selectAction, selectNextState, expand, expandNextState, estimateValue, backup, outputDistribution):
         self.numSimulation = numSimulation
         self.selectAction = selectAction 
         self.selectNextState = selectNextState
         self.expand = expand
-        self.growNextState = growNextState
+        self.expandNextState = expandNextState
         self.estimateValue = estimateValue
         self.backup = backup
         self.outputDistribution = outputDistribution
@@ -145,7 +145,7 @@ class MCTS:
 
             while currentNode.isExpanded:
                 actionNode = self.selectAction(currentNode)
-                allNextStateNodes = self.growNextState(currentNode, actionNode)
+                allNextStateNodes = self.expandNextState(currentNode, actionNode)
                 nextStateNode = self.selectNextState(currentNode, actionNode)
                 
                 nodePath.append(actionNode)
