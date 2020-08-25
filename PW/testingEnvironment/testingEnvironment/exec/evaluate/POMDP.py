@@ -74,17 +74,46 @@ def main():
 
 
     def rolloutHeuristic(beliefState):
-    	return 0
+        return 0
+    def rolloutPolicy(beliefState):
+        rewardList = {action: sampleBeliefReward(beliefState, action) for action in actionSpace}
+        #print(rewardList)
+        actionList = []
+        for action in actionSpace:
+            if rewardList[action] == max(rewardList.values()):
+                actionList.append(action)
+        prob = [1/len(actionList) for action in actionList]
+
+        greedy = np.random.choice( actionList, 1 ,p = prob)[0]
+
+        return greedy
         
-    maxRolloutStep = 1
+    maxRolloutStep = 10
     estimateValue = RollOut(rolloutPolicy, maxRolloutStep, sampleNextBelief, beliefReward, isTerminal, rolloutHeuristic)
-    numSimulation = 5
+    numSimulation = 100
     mctsSelectAction = MCTS(numSimulation, selectAction, selectNextState, expand, expandNewState, estimateValue, backup, establishPlainActionDist)
 
     def sampleAction(state):
         actionDist = mctsSelectAction(state)
         action = maxFromDistribution(actionDist)
         return action
-    print(sampleAction(b))
+    listen = 0
+    openLeft = 0
+    openRight = 0
+    g = []
+    for i in range(100):
+        act = sampleAction(b)
+        if act == 'listen':
+            listen = listen +1
+
+        if act == 'open-left':
+            openLeft = openLeft +1
+        if act == 'open-right':
+            openRight = openRight+1
+        g.append(sampleBeliefReward(b, act))
+        #print(sampleAction(b))
+    print(listen, openLeft, openRight)
+    print(g)
+
 if __name__ == '__main__':
     main()
