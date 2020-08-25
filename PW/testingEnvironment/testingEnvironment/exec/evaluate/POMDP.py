@@ -86,3 +86,5 @@ def main():
         action = maxFromDistribution(actionDist)
         return action
     print(sampleAction(b))
+if __name__ == '__main__':
+    main()
