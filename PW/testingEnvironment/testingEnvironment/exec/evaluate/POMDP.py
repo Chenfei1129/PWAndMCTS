@@ -21,10 +21,10 @@ from src.chooseFromDistribution import SampleFromDistribution, maxFromDistributi
 from src.trajectoriesSaveLoad import GetSavePath, readParametersFromDf, LoadTrajectories, SaveAllTrajectories, \
     GenerateAllSampleIndexSavePaths, saveToPickle, loadFromPickle
 
-from src.MDPChasing.beliefTransition import SampleNextBelief, SampleBeliefReward, TigerTransition, TigerReward, TigerObservation
+from src.MDPChasing.beliefTransition2 import SampleNextBelief, SampleBeliefReward, TigerTransition, TigerReward, TigerObservation, BeliefTransition, BeliefReward
 
 from src.trajectory import SampleTrajectory, OneStepSampleTrajectory
-from src.algorithms.mctsStochasticNew2 import MCTS, ScoreChild,  SelectAction, SelectNextState, InitializeChildren, Expand, ExpandNextState, RollOut, establishPlainActionDist, backup, establishSoftmaxActionDist, establishPlainActionDist
+from src.algorithms.mctsStochasticNew import MCTS, ScoreChild,  SelectAction, SelectNextState, InitializeChildren, Expand, ExpandNextState, RollOut, establishPlainActionDist, backup, establishSoftmaxActionDist, establishPlainActionDist
 from src.sampleTrajectoryTools.resetObjectsForMultipleTrjaectory import RecordValuesForObjects, ResetObjects, GetObjectsValuesOfAttributes
 from src.sampleTrajectoryTools.trajectoriesSaveLoad import GetSavePath, readParametersFromDf, LoadTrajectories, SaveAllTrajectories, \
         GenerateAllSampleIndexSavePaths, saveToPickle, loadFromPickle
@@ -36,7 +36,7 @@ def main():
     rewardParam={'listen_cost':-1, 'open_incorrect_cost':-100, 'open_correct_reward':10}
     rewardFunction=TigerReward(rewardParam)
     
-    observationParam={'obs_correct_prob':0.85, 'obs_incorrect_prob':0.15}
+    observationParam={'obs_correct_prob':1, 'obs_incorrect_prob':0}
     observationFunction=TigerObservation(observationParam)
     
     transitionFunction=TigerTransition()
@@ -47,9 +47,13 @@ def main():
     
     sampleBeliefReward=SampleBeliefReward(transitionFunction, rewardFunction)
     
-    b={'tiger-left':0.15, 'tiger-right':0.85}
-    observationSpace=['tiger-left', 'tiger-right', 'Nothing']
-    actionSpace = ['open-left', 'open-right','listen']
+    beliefTransition=BeliefTransition(transitionFunction, observationFunction, observationSpace)
+    
+    beliefReward=BeliefReward(transitionFunction, rewardFunction, observationFunction, observationSpace)
+    
+    b={'tiger-left':1, 'tiger-right':0}
+    bPrime={'tiger-left':1, 'tiger-right':0}
+    actionSpace = ['open-right','listen','open-left']
 
     isTerminal = lambda state: 0
 
@@ -59,43 +63,26 @@ def main():
     selectAction = SelectAction(scoreChild)
     selectNextState = SelectNextState(selectAction)
     
-    uniformActionPrior = {action : 1/3 for action in actionSpace}
+    uniformActionPrior = {action : 1/len(actionSpace) for action in actionSpace}
     getActionPrior = lambda state : uniformActionPrior
     initializeChildren = InitializeChildren(actionSpace, sampleNextBelief, getActionPrior)
     expand = Expand( isTerminal, initializeChildren)
     expandNewState = ExpandNextState(sampleNextBelief)
 
-    #rolloutPolicy = lambda state: random.choice(actionSpace)
-    def rolloutPolicy(beliefState):
-        rewardList = {action: sampleBeliefReward(beliefState, action) for action in actionSpace}
-        #print(rewardList)
-        actionList = []
-        for action in actionSpace:
-        	if rewardList[action] == max(rewardList.values()):
-        		actionList.append(action)
-        prob = [1/len(actionList) for action in actionList]
+    rolloutPolicy = lambda state: random.choice(actionSpace)
 
-        greedy = np.random.choice( actionList, 1 ,p = prob)[0]
-
-        return greedy
 
 
     def rolloutHeuristic(beliefState):
     	return 0
         
     maxRolloutStep = 1
-    estimateValue = RollOut(rolloutPolicy, maxRolloutStep, sampleNextBelief, sampleBeliefReward, isTerminal, rolloutHeuristic)
-    numSimulation = 100
+    estimateValue = RollOut(rolloutPolicy, maxRolloutStep, sampleNextBelief, beliefReward, isTerminal, rolloutHeuristic)
+    numSimulation = 5
     mctsSelectAction = MCTS(numSimulation, selectAction, selectNextState, expand, expandNewState, estimateValue, backup, establishPlainActionDist)
-    #sampleAction = SampleFromDistribution(actionDictionary)
+
     def sampleAction(state):
         actionDist = mctsSelectAction(state)
-        print(actionDist)
         action = maxFromDistribution(actionDist)
         return action
-
-    
     print(sampleAction(b))
-
-if __name__ == '__main__':
-    main()
