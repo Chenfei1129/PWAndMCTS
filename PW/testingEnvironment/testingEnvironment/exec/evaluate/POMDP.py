@@ -66,8 +66,10 @@ def main():
     scoreChild = ScoreChild(cInit,cBase, nodeReward)
     selectAction = SelectAction(scoreChild)
     selectNextState = SelectNextState(selectAction)
+    
+    numLayer = 3
     def isTerminalLevel(state):
-        return state['depth']> 1
+        return state['depth']> numLayer
 
     uniformActionPrior = {action : 1/len(actionSpace) for action in actionSpace}
     getActionPrior = lambda state : uniformActionPrior
