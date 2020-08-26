@@ -1,4 +1,5 @@
 
+
 import sys
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -67,9 +68,9 @@ def main():
     selectAction = SelectAction(scoreChild)
     selectNextState = SelectNextState(selectAction)
     
-    numLayer = 3
+    numLayer = 2
     def isTerminalLevel(state):
-        return state['depth']> numLayer
+        return state['depth']>= numLayer
 
     uniformActionPrior = {action : 1/len(actionSpace) for action in actionSpace}
     getActionPrior = lambda state : uniformActionPrior
@@ -97,8 +98,8 @@ def main():
         actionDist = mctsSelectAction(state)
         action = maxFromDistribution(actionDist)
         return action
-    #print(sampleAction(node1))
-
+    print(sampleAction(node1))
+'''
     listen = 0
     openLeft = 0
     openRight = 0
@@ -113,10 +114,8 @@ def main():
             openRight = openRight+1
     print(listen, openLeft, openRight)
 
-
+'''
 
 
 if __name__ == '__main__':
     main()
-
-
