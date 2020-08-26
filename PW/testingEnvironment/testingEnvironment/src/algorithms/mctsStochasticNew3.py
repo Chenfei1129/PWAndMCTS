@@ -114,7 +114,6 @@ class RollOut:
             nextState = self.transitionFunction(currentState, action)
             reward = self.rewardFunction(currentState, action, nextState)
             weightedReward = reward*np.power(self.gamma, step)
-            print(weightedReward)
             totalRewardForRollout += weightedReward
             if self.isTerminal(currentState):
                 break
