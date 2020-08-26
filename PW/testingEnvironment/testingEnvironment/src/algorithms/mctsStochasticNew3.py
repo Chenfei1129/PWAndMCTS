@@ -86,9 +86,6 @@ class SelectNextState:
             probNextStateVisits = [1/len(nextPossibleState) for nextState in nextPossibleState]
             nextState = np.random.choice(nextPossibleState, 1, p =probNextStateVisits)
         else:
-            for state in nextPossibleState:
-                if state.numVisited == 0:
-                    return state 
             probNextStateVisits = [nextState.numVisited/actionNode.numVisited for nextState in actionNode.children]
             nextState = np.random.choice(nextPossibleState, 1, p =probNextStateVisits)
         return nextState[0]
