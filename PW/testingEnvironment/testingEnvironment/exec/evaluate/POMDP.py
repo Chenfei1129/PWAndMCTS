@@ -53,7 +53,7 @@ def main():
     beliefReward=BeliefReward(transitionFunction, rewardFunction, observationFunction, observationSpace)
     
     
-    node1={'b':{'tiger-left':0.5, 'tiger-right':0.5}, 'depth':1}
+    node1={'b':{'tiger-left':1, 'tiger-right':0}, 'depth':0}
     sampleNextNode=SampleNextNode(sampleNextBelief)
     nodeReward=NodeReward(beliefReward)
 
