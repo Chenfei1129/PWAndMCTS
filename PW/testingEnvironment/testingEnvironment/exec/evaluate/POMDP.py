@@ -53,7 +53,7 @@ def main():
     beliefReward=BeliefReward(transitionFunction, rewardFunction, observationFunction, observationSpace)
     
     
-    node1={'b':{'tiger-left':1, 'tiger-right':0}, 'depth':0}
+    node1={'b':{'tiger-left':0, 'tiger-right':1}, 'depth':1}
     sampleNextNode=SampleNextNode(sampleNextBelief)
     nodeReward=NodeReward(beliefReward)
 
@@ -66,12 +66,13 @@ def main():
     scoreChild = ScoreChild(cInit,cBase, nodeReward)
     selectAction = SelectAction(scoreChild)
     selectNextState = SelectNextState(selectAction)
-
+    def isTerminalLevel(state):
+        return state['depth']> 1
 
     uniformActionPrior = {action : 1/len(actionSpace) for action in actionSpace}
     getActionPrior = lambda state : uniformActionPrior
     initializeChildren = InitializeChildren(actionSpace, sampleNextNode, getActionPrior)
-    expand = Expand( isTerminal, initializeChildren)
+    expand = Expand( isTerminalLevel, initializeChildren)
     expandNewState = ExpandNextState(sampleNextNode)
 
     rolloutPolicy = lambda state: random.choice(actionSpace)
@@ -83,7 +84,10 @@ def main():
         
     gamma = 0.5
     maxRolloutStep = 10
-    estimateValue = RollOut(rolloutPolicy, maxRolloutStep, sampleNextNode, nodeReward, isTerminal, rolloutHeuristic, gamma)
+    
+
+
+    estimateValue = RollOut(rolloutPolicy, maxRolloutStep, sampleNextNode, nodeReward, isTerminalLevel, rolloutHeuristic, gamma)
     numSimulation = 20
     mctsSelectAction = MCTS(numSimulation, selectAction, selectNextState, expand, expandNewState, estimateValue, backup, establishPlainActionDist)
 
@@ -91,6 +95,7 @@ def main():
         actionDist = mctsSelectAction(state)
         action = maxFromDistribution(actionDist)
         return action
+    #print(sampleAction(node1))
 
     listen = 0
     openLeft = 0
@@ -100,8 +105,6 @@ def main():
         act = sampleAction(node1)
         if act == 'listen':
             listen = listen +1
-
-
         if act == 'open-left':
             openLeft = openLeft +1
         if act == 'open-right':
@@ -111,6 +114,7 @@ def main():
 
 
 
-
 if __name__ == '__main__':
     main()
+
+
