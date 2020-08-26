@@ -1,3 +1,4 @@
+
 import sys
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -21,15 +22,15 @@ from src.chooseFromDistribution import SampleFromDistribution, maxFromDistributi
 from src.trajectoriesSaveLoad import GetSavePath, readParametersFromDf, LoadTrajectories, SaveAllTrajectories, \
     GenerateAllSampleIndexSavePaths, saveToPickle, loadFromPickle
 
-from src.MDPChasing.beliefTransition2 import SampleNextBelief, SampleBeliefReward, TigerTransition, TigerReward, TigerObservation, BeliefTransition, BeliefReward
+from src.MDPChasing.beliefDepthTransition import SampleNextNode, NodeReward, BeliefReward, SampleNextBelief, TigerReward, TigerTransition, TigerObservation, SampleBeliefReward, BeliefTransition
 
 from src.trajectory import SampleTrajectory, OneStepSampleTrajectory
-from src.algorithms.mctsStochasticNew import MCTS, ScoreChild,  SelectAction, SelectNextState, InitializeChildren, Expand, ExpandNextState, RollOut, establishPlainActionDist, backup, establishSoftmaxActionDist, establishPlainActionDist
+from src.algorithms.mctsStochasticNew3 import MCTS, ScoreChild,  SelectAction, SelectNextState, InitializeChildren, Expand, ExpandNextState, RollOut, establishPlainActionDist, backup, establishSoftmaxActionDist, establishPlainActionDist
 from src.sampleTrajectoryTools.resetObjectsForMultipleTrjaectory import RecordValuesForObjects, ResetObjects, GetObjectsValuesOfAttributes
 from src.sampleTrajectoryTools.trajectoriesSaveLoad import GetSavePath, readParametersFromDf, LoadTrajectories, SaveAllTrajectories, \
         GenerateAllSampleIndexSavePaths, saveToPickle, loadFromPickle
 from src.sampleTrajectoryTools.evaluation import ComputeStatistics 
-
+#rollout add gamma
 def main():
 
     # Node belief 
@@ -51,23 +52,27 @@ def main():
     
     beliefReward=BeliefReward(transitionFunction, rewardFunction, observationFunction, observationSpace)
     
-    b={'tiger-left':1, 'tiger-right':0}
-    bPrime={'tiger-left':1, 'tiger-right':0}
+    
+    node1={'b':{'tiger-left':0.5, 'tiger-right':0.5}, 'depth':1}
+    sampleNextNode=SampleNextNode(sampleNextBelief)
+    nodeReward=NodeReward(beliefReward)
+
     actionSpace = ['open-right','listen','open-left']
 
     isTerminal = lambda state: 0
 
     cInit = 1
     cBase =100
-    scoreChild = ScoreChild(cInit,cBase)
+    scoreChild = ScoreChild(cInit,cBase, nodeReward)
     selectAction = SelectAction(scoreChild)
     selectNextState = SelectNextState(selectAction)
-    
+
+
     uniformActionPrior = {action : 1/len(actionSpace) for action in actionSpace}
     getActionPrior = lambda state : uniformActionPrior
-    initializeChildren = InitializeChildren(actionSpace, sampleNextBelief, getActionPrior)
+    initializeChildren = InitializeChildren(actionSpace, sampleNextNode, getActionPrior)
     expand = Expand( isTerminal, initializeChildren)
-    expandNewState = ExpandNextState(sampleNextBelief)
+    expandNewState = ExpandNextState(sampleNextNode)
 
     rolloutPolicy = lambda state: random.choice(actionSpace)
 
@@ -75,45 +80,37 @@ def main():
 
     def rolloutHeuristic(beliefState):
         return 0
-    def rolloutPolicy(beliefState):
-        rewardList = {action: sampleBeliefReward(beliefState, action) for action in actionSpace}
-        #print(rewardList)
-        actionList = []
-        for action in actionSpace:
-            if rewardList[action] == max(rewardList.values()):
-                actionList.append(action)
-        prob = [1/len(actionList) for action in actionList]
-
-        greedy = np.random.choice( actionList, 1 ,p = prob)[0]
-
-        return greedy
         
+    gamma = 0.5
     maxRolloutStep = 10
-    estimateValue = RollOut(rolloutPolicy, maxRolloutStep, sampleNextBelief, beliefReward, isTerminal, rolloutHeuristic)
-    numSimulation = 100
+    estimateValue = RollOut(rolloutPolicy, maxRolloutStep, sampleNextNode, nodeReward, isTerminal, rolloutHeuristic, gamma)
+    numSimulation = 20
     mctsSelectAction = MCTS(numSimulation, selectAction, selectNextState, expand, expandNewState, estimateValue, backup, establishPlainActionDist)
 
     def sampleAction(state):
         actionDist = mctsSelectAction(state)
         action = maxFromDistribution(actionDist)
         return action
+
     listen = 0
     openLeft = 0
     openRight = 0
-    g = []
+
     for i in range(100):
-        act = sampleAction(b)
+        act = sampleAction(node1)
         if act == 'listen':
             listen = listen +1
+
 
         if act == 'open-left':
             openLeft = openLeft +1
         if act == 'open-right':
             openRight = openRight+1
-        g.append(sampleBeliefReward(b, act))
-        #print(sampleAction(b))
     print(listen, openLeft, openRight)
-    print(g)
+
+
+
+
 
 if __name__ == '__main__':
     main()
